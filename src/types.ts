@@ -1,4 +1,4 @@
-import { DataQuery, DataSourceJsonData } from '@grafana/data';
+import { DataFrame, DataQuery, DataSourceJsonData } from '@grafana/data';
 
 export interface HumioQuery extends DataQuery {
   queryString: string;
@@ -26,4 +26,6 @@ export interface HumioSecureJsonData {
 
 export interface HumioSearchResult {
   events: any[];
+
+  toDataFrames(): DataFrame[];
 }
