@@ -1,0 +1,15 @@
+---
+kind: pipeline
+type: kubernetes
+name: ci
+
+trigger:
+  event:
+  - push
+  - pull_request
+
+steps:
+- name: test
+  image: registry.netic.dk/dockerhub/node:14-stretch
+  commands:
+  - yarn test

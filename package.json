@@ -1,7 +1,7 @@
 {
-  "name": "simple-datasource",
+  "name": "grafana-humoi-datasource",
   "version": "1.0.0",
-  "description": "Grafana Data Source Plugin Template",
+  "description": "Grafana Data Source for Humio",
   "scripts": {
     "build": "grafana-toolkit plugin:build",
     "test": "grafana-toolkit plugin:test",

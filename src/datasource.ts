@@ -10,11 +10,27 @@ import {
   FieldType,
   DataSourceApi,
   Labels,
+  guessFieldTypeFromValue,
 } from '@grafana/data';
 
 import { HumioQuery, HumioDataSourceOptions, HumioSearchResult, defaultQuery } from './types';
 
-export class DataSource extends DataSourceApi<HumioQuery, HumioDataSourceOptions> {
+const TS_FIELD = '@timestamp';
+const ID_FIELD = '@id';
+
+export class HumioDataSource extends DataSourceApi<HumioQuery, HumioDataSourceOptions> {
+  private ignoredFields = [
+    'name',
+    '@rawstring',
+    'timestamp',
+    '@ingesttimestamp',
+    '@timestamp.nanos',
+    '@timezone',
+    '#repo',
+    '#type',
+  ];
+  private messageField = 'message';
+
   constructor(private instanceSettings: DataSourceInstanceSettings<HumioDataSourceOptions>) {
     super(instanceSettings);
   }
@@ -47,9 +63,6 @@ export class DataSource extends DataSourceApi<HumioQuery, HumioDataSourceOptions
     const from = range!.from.valueOf();
     const to = range!.to.valueOf();
 
-    // TODO: Configuration??
-    const ignoredFields = ['name', '@rawstring', '@id'];
-
     const queries = options.targets.map((target) => {
       const query = defaults(target, defaultQuery);
       query.start = from;
@@ -57,37 +70,48 @@ export class DataSource extends DataSourceApi<HumioQuery, HumioDataSourceOptions
 
       return this.search(query).pipe(
         map((result) => {
-          // Validate the result - what if aggregate query??? like "count()":
-          // [{"_count":"64"}]
+          const logQuery = result.events.some((ev) => TS_FIELD in ev);
+          if (logQuery) {
+            return result.events.map((event) => {
+              const labels = Object.keys(event)
+                .filter(
+                  (v: string, i: number, a: any[]) =>
+                    [...this.ignoredFields, TS_FIELD, ID_FIELD, this.messageField].indexOf(v) === -1
+                )
+                .reduce((acc, ev) => {
+                  acc[ev] = event[ev];
+                  return acc;
+                }, {} as Labels);
 
-          return result.events.map((event) => {
-            const labels = Object.keys(event)
-              .filter((v: string, i: number, a: any[]) => [...ignoredFields, '@timestamp', 'message'].indexOf(v) === -1)
-              .reduce((acc, ev) => {
-                acc[ev] = event[ev];
-                return acc;
-              }, {} as Labels);
-
+              const dataFrame = new MutableDataFrame({
+                refId: query.refId,
+                meta: {
+                  preferredVisualisationType: 'logs',
+                },
+                fields: [
+                  { name: 'timestamp', type: FieldType.time },
+                  { name: 'message', type: FieldType.string, labels: labels },
+                  { name: 'id', type: FieldType.string },
+                ],
+              });
+              dataFrame.add({ timestamp: event[TS_FIELD], message: event[this.messageField], id: event[ID_FIELD] });
+              return dataFrame;
+            });
+          } else if (result.events.length === 0) {
+            return [];
+          } else {
+            const fields = Object.keys(result.events[0]).map((key) => {
+              return { name: key, type: guessFieldTypeFromValue(result.events[0][key]) };
+            });
             const dataFrame = new MutableDataFrame({
               refId: query.refId,
-              meta: {
-                preferredVisualisationType: 'logs',
-              },
-              fields: [
-                { name: '@timestamp', type: FieldType.time },
-                { name: 'message', type: FieldType.string, labels: labels },
-                { name: 'id', type: FieldType.string },
-              ],
+              fields: fields,
             });
-
-            event['id'] = event['@id'];
-            ignoredFields.forEach((f) => {
-              delete event[f];
+            result.events.forEach((event) => {
+              dataFrame.add(event);
             });
-            dataFrame.add(event);
-
-            return dataFrame;
-          });
+            return [dataFrame];
+          }
         })
       );
     });

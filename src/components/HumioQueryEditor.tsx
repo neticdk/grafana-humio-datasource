@@ -3,10 +3,10 @@ import defaults from 'lodash/defaults';
 import React, { PureComponent } from 'react';
 import { QueryField } from '@grafana/ui';
 import { QueryEditorProps } from '@grafana/data';
-import { DataSource } from '../datasource';
+import { HumioDataSource } from '../datasource';
 import { defaultQuery, HumioDataSourceOptions, HumioQuery } from '../types';
 
-type Props = QueryEditorProps<DataSource, HumioQuery, HumioDataSourceOptions>;
+type Props = QueryEditorProps<HumioDataSource, HumioQuery, HumioDataSourceOptions>;
 
 export class HumioQueryEditor extends PureComponent<Props> {
   onChangeQuery = (value: string) => {
