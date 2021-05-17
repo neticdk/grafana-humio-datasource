@@ -12,4 +12,5 @@ steps:
 - name: test
   image: registry.netic.dk/dockerhub/library/node:14-stretch
   commands:
+  - yarn install
   - yarn test
