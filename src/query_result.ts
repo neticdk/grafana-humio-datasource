@@ -1,5 +1,5 @@
-import { DataFrame, FieldType, guessFieldTypeFromValue, Labels, MutableDataFrame } from "@grafana/data";
-import { HumioSearchResult } from "types";
+import { DataFrame, FieldType, guessFieldTypeFromValue, Labels, MutableDataFrame } from '@grafana/data';
+import { HumioSearchResult } from 'types';
 
 const TS_FIELD = '@timestamp';
 const ID_FIELD = '@id';
@@ -17,7 +17,7 @@ export class HumioQueryResult implements HumioSearchResult {
   ];
   private messageField = 'message';
 
-  constructor(public events: any[], private refId: string){}
+  constructor(public events: any[], private refId: string) {}
 
   toDataFrames(): DataFrame[] {
     const logQuery = this.events.some((ev) => TS_FIELD in ev);
@@ -63,5 +63,4 @@ export class HumioQueryResult implements HumioSearchResult {
       return [dataFrame];
     }
   }
-  
 }

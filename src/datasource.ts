@@ -1,13 +1,8 @@
 import defaults from 'lodash/defaults';
 import { forkJoin, Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
-import { BackendSrvRequest, FetchResponse, getBackendSrv } from '@grafana/runtime';
-import {
-  DataQueryRequest,
-  DataQueryResponse,
-  DataSourceInstanceSettings,
-  DataSourceApi,
-} from '@grafana/data';
+import { BackendSrvRequest, FetchResponse, getBackendSrv, getTemplateSrv } from '@grafana/runtime';
+import { DataQueryRequest, DataQueryResponse, DataSourceInstanceSettings, DataSourceApi } from '@grafana/data';
 
 import { HumioQuery, HumioDataSourceOptions, HumioSearchResult, defaultQuery } from './types';
 import { HumioQueryResult } from 'query_result';
@@ -45,17 +40,23 @@ export class HumioDataSource extends DataSourceApi<HumioQuery, HumioDataSourceOp
     const from = range!.from.valueOf();
     const to = range!.to.valueOf();
 
-    const queries = options.targets.map((target) => {
-      const query = defaults(target, defaultQuery);
-      query.start = from;
-      query.end = to;
+    const queries = options.targets
+      .filter((target) => !target.hide)
+      .map((target) => ({
+        ...target,
+        queryString: getTemplateSrv().replace(target.queryString, options.scopedVars, 'regex'),
+      }))
+      .map((target) => {
+        const query = defaults(target, defaultQuery);
+        query.start = from;
+        query.end = to;
 
-      return this.search(query).pipe(
-        map((result) => {
-          return result.toDataFrames();
-        })
-      );
-    });
+        return this.search(query).pipe(
+          map((result) => {
+            return result.toDataFrames();
+          })
+        );
+      });
 
     return forkJoin(queries).pipe(
       map((results) => {

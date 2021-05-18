@@ -5,67 +5,76 @@ import { TestScheduler } from 'rxjs/testing';
 import { of } from 'rxjs';
 
 const mockFetch = jest.fn();
-const backendSrv = {fetch: mockFetch};
+// @ts-ignore
+const backendSrv = { fetch: mockFetch };
+
+const mockReplace = jest.fn();
+// @ts-ignore
+const templateSrv = { replace: mockReplace };
+
 jest.mock('@grafana/runtime', () => ({
   // @ts-ignore
   ...jest.requireActual('@grafana/runtime'),
   getBackendSrv: () => backendSrv,
+  getTemplateSrv: () => templateSrv,
 }));
 
-
 describe('HumioDatasource', () => {
+  let scheduler: TestScheduler;
 
-  let scheduler : TestScheduler;
-
-  beforeEach(() => scheduler = new TestScheduler((actual, expected) => {
-    expect(actual).toEqual(expected);
-  }));
+  beforeEach(
+    () =>
+      (scheduler = new TestScheduler((actual, expected) => {
+        expect(actual).toEqual(expected);
+      }))
+  );
 
   describe('when querying', () => {
     it('should return series for logs query', () => {
       const instanceSettings: any = {
         jsonData: {
           repository: 'main-repo',
-        }
+        },
       };
       const ds = new HumioDataSource(instanceSettings);
       const options: DataQueryRequest<HumioQuery> = getQueryOptions({
-        targets: [{refId: 'A', queryString: '', start: 0, end: 0}]
+        targets: [{ refId: 'A', queryString: '', start: 0, end: 0 }],
       });
 
-      const event = {'@timestamp': 1620646839343, message: 'Some message', '@id': 'unique'};
-      mockFetch.mockImplementation(() => of({
-        data: [event],
-        status: 200,
-        url: 'http://localhost:3000/api/tsdb/query',
-        config: { url: 'http://localhost:3000/api/tsdb/query' },
-        type: 'basic',
-        statusText: 'Ok',
-        redirected: false,
-        headers: ({} as unknown) as Headers,
-        ok: true,
-      }));
+      const event = { '@timestamp': 1620646839343, message: 'Some message', '@id': 'unique' };
+      mockFetch.mockImplementation(() =>
+        of({
+          data: [event],
+          status: 200,
+          url: 'http://localhost:3000/api/tsdb/query',
+          config: { url: 'http://localhost:3000/api/tsdb/query' },
+          type: 'basic',
+          statusText: 'Ok',
+          redirected: false,
+          headers: {} as unknown as Headers,
+          ok: true,
+        })
+      );
 
       const result = new MutableDataFrame({
         refId: 'A',
         meta: {
-          "preferredVisualisationType": "logs",
+          preferredVisualisationType: 'logs',
         },
         fields: [
-          {name: 'timestamp', type: FieldType.time},
-          {name: 'message', type: FieldType.string, labels: {}},
-          {name: 'id', type: FieldType.string},
-        ]
+          { name: 'timestamp', type: FieldType.time },
+          { name: 'message', type: FieldType.string, labels: {} },
+          { name: 'id', type: FieldType.string },
+        ],
       });
-      result.add({timestamp: event['@timestamp'], message: event['message'], 'id': event['@id']});
+      result.add({ timestamp: event['@timestamp'], message: event['message'], id: event['@id'] });
 
-      scheduler.run(({expectObservable}) => {
-        expectObservable(ds.query(options)).toBe('(a|)', {a: {data: [result]}});
+      scheduler.run(({ expectObservable }) => {
+        expectObservable(ds.query(options)).toBe('(a|)', { a: { data: [result] } });
       });
     });
   });
 });
-
 
 function getQueryOptions<TQuery extends DataQuery>(
   options: Partial<DataQueryRequest<TQuery>>
