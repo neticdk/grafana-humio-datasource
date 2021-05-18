@@ -30,7 +30,7 @@ export class HumioDataSource extends DataSourceApi<HumioQuery, HumioDataSourceOp
       .fetch<any[]>(options)
       .pipe(
         map((result) => {
-          return new HumioQueryResult(result.data, query.refId);
+          return new HumioQueryResult(result.data, query.refId, this.instanceSettings.jsonData.derivedFields ?? []);
         })
       );
   }
