@@ -1,13 +1,4 @@
-import {
-  ArrayVector,
-  DataFrame,
-  DataLink,
-  Field,
-  FieldType,
-  guessFieldTypeFromValue,
-  Labels,
-  MutableDataFrame,
-} from '@grafana/data';
+import { DataFrame, DataLink, FieldType, guessFieldTypeFromValue, Labels, MutableDataFrame } from '@grafana/data';
 import { getDataSourceSrv } from '@grafana/runtime';
 import { groupBy } from 'lodash';
 import { DerivedFieldConfig, HumioSearchResult } from 'types';
@@ -63,13 +54,14 @@ export class HumioQueryResult implements HumioSearchResult {
           { name: 'timestamp', type: FieldType.time },
           { name: 'message', type: FieldType.string, labels: labels },
           { name: 'id', type: FieldType.string },
-          ...derived,
+          ...derived.fields,
         ],
       });
       dataFrame.add({
         timestamp: event[TS_FIELD],
         message: event[this.messageField],
         id: event[ID_FIELD],
+        ...derived.values,
       });
 
       return dataFrame;
@@ -90,54 +82,56 @@ export class HumioQueryResult implements HumioSearchResult {
     return [dataFrame];
   }
 
-  private deriveFields(message: string): Field[] {
+  private deriveFields(message: string): { fields: any[]; values: any[] } {
     if (this.deriveFields.length === 0) {
-      return [];
+      return { fields: [], values: [] };
     }
 
     const derivedFieldsGrouped = groupBy(this.derivedFields, 'name');
     const dataSourceSrv = getDataSourceSrv();
 
-    const fields = Object.values(derivedFieldsGrouped).reduce((fields, config: DerivedFieldConfig[]) => {
-      const match = message.match(config[0].matcherRegex);
-      if (match && match[1]) {
-        const dataLinks = config.reduce((links, fieldConfig) => {
-          if (fieldConfig.datasourceUid) {
-            const dsSettings = dataSourceSrv.getInstanceSettings(fieldConfig.datasourceUid);
-            links.push({
-              title: '',
-              url: '',
-              // This is hardcoded for Jaeger or Zipkin - no way right now to specify datasource specific query object
-              internal: {
-                query: { query: fieldConfig.url },
-                datasourceUid: fieldConfig.datasourceUid,
-                datasourceName: dsSettings?.name ?? 'Data source not found',
-              },
-            });
-          } else if (fieldConfig.url) {
-            links.push({
-              // We do not know what title to give here so we count on presentation layer to create a title from metadata.
-              title: '',
-              // This is hardcoded for Jaeger or Zipkin - no way right now to specify datasource specific query object
-              url: fieldConfig.url,
-            });
-          }
-          return links;
-        }, [] as DataLink[]);
+    const data = Object.values(derivedFieldsGrouped).reduce(
+      (data, config: DerivedFieldConfig[]) => {
+        const match = message.match(config[0].matcherRegex);
+        if (match && match[1]) {
+          const dataLinks = config.reduce((links, fieldConfig) => {
+            if (fieldConfig.datasourceUid) {
+              const dsSettings = dataSourceSrv.getInstanceSettings(fieldConfig.datasourceUid);
+              links.push({
+                title: '',
+                url: '',
+                // This is hardcoded for Jaeger or Zipkin - no way right now to specify datasource specific query object
+                internal: {
+                  query: { query: fieldConfig.url },
+                  datasourceUid: fieldConfig.datasourceUid,
+                  datasourceName: dsSettings?.name ?? 'Data source not found',
+                },
+              });
+            } else if (fieldConfig.url) {
+              links.push({
+                // We do not know what title to give here so we count on presentation layer to create a title from metadata.
+                title: '',
+                // This is hardcoded for Jaeger or Zipkin - no way right now to specify datasource specific query object
+                url: fieldConfig.url,
+              });
+            }
+            return links;
+          }, [] as DataLink[]);
 
-        fields.push({
-          name: config[0].name,
-          config: {
-            links: dataLinks,
-          },
-          type: FieldType.string,
-          values: new ArrayVector([match[1]]),
-        });
-      }
+          data.fields.push({
+            name: config[0].name,
+            config: {
+              links: dataLinks,
+            },
+            type: FieldType.string,
+          });
+          data.values[config[0].name] = match[1];
+        }
 
-      return fields;
-    }, [] as Field[]);
-
-    return fields;
+        return data;
+      },
+      { fields: [] as any[], values: {} as any }
+    );
+    return data;
   }
 }

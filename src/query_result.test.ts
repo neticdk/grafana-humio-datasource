@@ -39,6 +39,8 @@ describe('HumioQueryResult', () => {
     const frames = result.toDataFrames();
     expect(frames.length).toBe(1);
     expect(frames[0].fields.length).toBe(4);
+    expect(frames[0].fields[3].values.length).toBe(1);
+    expect(frames[0].fields[3].values.get(0)).toBe('qwerty');
   });
 });
 

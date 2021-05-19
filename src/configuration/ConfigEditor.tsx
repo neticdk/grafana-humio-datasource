@@ -2,6 +2,7 @@ import React, { ChangeEvent, PureComponent } from 'react';
 import { DataSourceHttpSettings, LegacyForms } from '@grafana/ui';
 import { DataSourcePluginOptionsEditorProps, DataSourceSettings } from '@grafana/data';
 import { HumioDataSourceOptions, HumioSecureJsonData } from '../types';
+import { DerivedFields } from './DerivedFields';
 
 const { SecretFormField, FormField } = LegacyForms;
 
@@ -9,23 +10,22 @@ interface Props extends DataSourcePluginOptionsEditorProps<HumioDataSourceOption
 
 interface State {}
 
-export class ConfigEditor extends PureComponent<Props, State> {
-  onHttpSettingsChange = (config: DataSourceSettings) => {
-    const { onOptionsChange } = this.props;
-    const options = config as DataSourceSettings<HumioDataSourceOptions>;
-    onOptionsChange({ ...options });
-  };
-
-  onRepositoryChange = (event: ChangeEvent<HTMLInputElement>) => {
-    const { onOptionsChange, options } = this.props;
-    const jsonData = {
-      ...options.jsonData,
-      repository: event.target.value,
+const makeJsonUpdater =
+  <T extends any>(field: keyof HumioDataSourceOptions) =>
+  (options: DataSourceSettings<HumioDataSourceOptions>, value: T): DataSourceSettings<HumioDataSourceOptions> => {
+    return {
+      ...options,
+      jsonData: {
+        ...options.jsonData,
+        [field]: value,
+      },
     };
-    onOptionsChange({ ...options, jsonData });
   };
 
-  // Secure field (only sent to the backend)
+const setRepository = makeJsonUpdater('repository');
+const setDerivedFields = makeJsonUpdater('derivedFields');
+
+export class ConfigEditor extends PureComponent<Props, State> {
   onAPIKeyChange = (event: ChangeEvent<HTMLInputElement>) => {
     const { onOptionsChange, options } = this.props;
     onOptionsChange({
@@ -52,7 +52,7 @@ export class ConfigEditor extends PureComponent<Props, State> {
   };
 
   render() {
-    const { options } = this.props;
+    const { options, onOptionsChange } = this.props;
     const { jsonData, secureJsonFields } = options;
     const secureJsonData = (options.secureJsonData || {}) as HumioSecureJsonData;
 
@@ -62,7 +62,7 @@ export class ConfigEditor extends PureComponent<Props, State> {
           defaultUrl={'http://localhost:3100'}
           dataSourceConfig={options}
           showAccessOptions={false}
-          onChange={this.onHttpSettingsChange}
+          onChange={(config) => onOptionsChange(config as DataSourceSettings<HumioDataSourceOptions>)}
         />
 
         <div className="gf-form-group">
@@ -71,7 +71,7 @@ export class ConfigEditor extends PureComponent<Props, State> {
               label="Repository"
               labelWidth={6}
               inputWidth={20}
-              onChange={this.onRepositoryChange}
+              onChange={(event) => onOptionsChange(setRepository(options, event.target.value))}
               value={jsonData.repository || ''}
               placeholder="Humio repository containing log data"
             />
@@ -90,6 +90,11 @@ export class ConfigEditor extends PureComponent<Props, State> {
             />
           </div>
         </div>
+
+        <DerivedFields
+          value={options.jsonData.derivedFields}
+          onChange={(value) => onOptionsChange(setDerivedFields(options, value))}
+        />
       </>
     );
   }

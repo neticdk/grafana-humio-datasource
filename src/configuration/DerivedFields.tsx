@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { css } from '@emotion/css';
 import { Button, stylesFactory, useTheme } from '@grafana/ui';
 import { GrafanaTheme, VariableOrigin, DataLinkBuiltInVars } from '@grafana/data';
@@ -25,8 +25,6 @@ export const DerivedFields = (props: Props) => {
   const theme = useTheme();
   const styles = getStyles(theme);
 
-  const [showDebug, setShowDebug] = useState(false);
-
   return (
     <>
       <h3 className="page-heading">Derived fields</h3>
@@ -34,7 +32,6 @@ export const DerivedFields = (props: Props) => {
       <div className={styles.infoText}>
         Derived fields can be used to extract new fields from a log message and create a link from its value.
       </div>
-
       <div className="gf-form-group">
         {value &&
           value.map((field, index) => {
@@ -79,12 +76,6 @@ export const DerivedFields = (props: Props) => {
           >
             Add
           </Button>
-
-          {value && value.length > 0 && (
-            <Button variant="secondary" type="button" onClick={() => setShowDebug(!showDebug)}>
-              {showDebug ? 'Hide example log message' : 'Show example log message'}
-            </Button>
-          )}
         </div>
       </div>
     </>
