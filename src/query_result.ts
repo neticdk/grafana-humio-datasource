@@ -1,4 +1,12 @@
-import { DataFrame, DataLink, FieldType, guessFieldTypeFromValue, Labels, MutableDataFrame } from '@grafana/data';
+import {
+  DataFrame,
+  DataLink,
+  FieldType,
+  guessFieldTypeFromValue,
+  Labels,
+  LoadingState,
+  MutableDataFrame,
+} from '@grafana/data';
 import { getDataSourceSrv } from '@grafana/runtime';
 import { groupBy } from 'lodash';
 import { DerivedFieldConfig, HumioSearchResult } from 'types';
@@ -25,7 +33,8 @@ export class HumioQueryResult implements HumioSearchResult {
     public events: any[],
     private aggregate: boolean,
     private refId: string,
-    private derivedFields: DerivedFieldConfig[]
+    private derivedFields: DerivedFieldConfig[],
+    public state: LoadingState
   ) {}
 
   toDataFrames(): DataFrame[] {

@@ -2,7 +2,13 @@ import defaults from 'lodash/defaults';
 import { interval, merge, Observable } from 'rxjs';
 import { exhaustMap, map, switchMap, takeWhile } from 'rxjs/operators';
 import { BackendSrvRequest, FetchResponse, getBackendSrv, getTemplateSrv } from '@grafana/runtime';
-import { DataQueryRequest, DataQueryResponse, DataSourceInstanceSettings, DataSourceApi } from '@grafana/data';
+import {
+  DataQueryRequest,
+  DataQueryResponse,
+  DataSourceInstanceSettings,
+  DataSourceApi,
+  LoadingState,
+} from '@grafana/data';
 
 import {
   HumioQuery,
@@ -64,7 +70,8 @@ export class HumioDataSource extends DataSourceApi<HumioQuery, HumioDataSourceOp
               response.events,
               response.metaData.isAggregate,
               query.refId,
-              this.instanceSettings.jsonData.derivedFields ?? []
+              this.instanceSettings.jsonData.derivedFields ?? [],
+              response.done ? LoadingState.Done : LoadingState.Loading
             )
         )
       );
@@ -91,6 +98,7 @@ export class HumioDataSource extends DataSourceApi<HumioQuery, HumioDataSourceOp
             return {
               data: result.toDataFrames(),
               key: query.refId,
+              state: result.state,
             } as DataQueryResponse;
           })
         );

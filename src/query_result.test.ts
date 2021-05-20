@@ -1,3 +1,4 @@
+import { LoadingState } from '@grafana/data';
 import { HumioQueryResult } from 'query_result';
 
 const mockGetInstanceSettings = jest.fn();
@@ -12,7 +13,7 @@ jest.mock('@grafana/runtime', () => ({
 
 describe('HumioQueryResult', () => {
   it('should return log data frames', () => {
-    const result = new HumioQueryResult([mockLogEvent()], false, 'A', []);
+    const result = new HumioQueryResult([mockLogEvent()], false, 'A', [], LoadingState.Done);
     const frames = result.toDataFrames();
     expect(frames.length).toBe(1);
     expect(frames[0].fields.length).toBe(3);
@@ -21,7 +22,7 @@ describe('HumioQueryResult', () => {
   });
 
   it('should return metric data frame', () => {
-    const result = new HumioQueryResult(mockMetricEvents(), true, 'A', []);
+    const result = new HumioQueryResult(mockMetricEvents(), true, 'A', [], LoadingState.Done);
     const frames = result.toDataFrames();
     expect(frames.length).toBe(1);
     expect(frames[0].fields.length).toBe(2);
@@ -29,13 +30,19 @@ describe('HumioQueryResult', () => {
   });
 
   it('should derive a field', () => {
-    const result = new HumioQueryResult([mockLogEvent()], false, 'A', [
-      {
-        name: 'TraceID',
-        matcherRegex: 'traceID=(\\w+)',
-        url: 'http://localhost:16686/trace/${__value.raw}',
-      },
-    ]);
+    const result = new HumioQueryResult(
+      [mockLogEvent()],
+      false,
+      'A',
+      [
+        {
+          name: 'TraceID',
+          matcherRegex: 'traceID=(\\w+)',
+          url: 'http://localhost:16686/trace/${__value.raw}',
+        },
+      ],
+      LoadingState.Done
+    );
     const frames = result.toDataFrames();
     expect(frames.length).toBe(1);
     expect(frames[0].fields.length).toBe(4);

@@ -1,4 +1,4 @@
-import { DataFrame, DataQuery, DataSourceJsonData } from '@grafana/data';
+import { DataFrame, DataQuery, DataSourceJsonData, LoadingState } from '@grafana/data';
 
 /**
  * Structure of a query for Humio data
@@ -36,6 +36,7 @@ export interface HumioSecureJsonData {
  */
 export interface HumioSearchResult {
   events: any[];
+  state: LoadingState;
 
   toDataFrames(): DataFrame[];
 }

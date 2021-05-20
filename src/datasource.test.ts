@@ -1,4 +1,12 @@
-import { CoreApp, DataQuery, DataQueryRequest, dateTime, FieldType, MutableDataFrame } from '@grafana/data';
+import {
+  CoreApp,
+  DataQuery,
+  DataQueryRequest,
+  dateTime,
+  FieldType,
+  LoadingState,
+  MutableDataFrame,
+} from '@grafana/data';
 import { HumioDataSource } from 'datasource';
 import { HumioQuery } from 'types';
 import { TestScheduler } from 'rxjs/testing';
@@ -81,8 +89,8 @@ describe('HumioDatasource', () => {
 
       scheduler.run(({ expectObservable }) => {
         expectObservable(ds.query(options)).toBe('500ms a 499ms (b|)', {
-          a: { data: [], key: 'A' },
-          b: { data: [result], key: 'A' },
+          a: { data: [], key: 'A', state: LoadingState.Loading },
+          b: { data: [result], key: 'A', state: LoadingState.Done },
         });
       });
     });
