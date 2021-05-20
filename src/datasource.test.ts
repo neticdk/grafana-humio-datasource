@@ -51,6 +51,9 @@ describe('HumioDatasource', () => {
         fetchResponse({
           done: false,
           events: [],
+          metaData: {
+            isAggregate: false,
+          },
         })
       );
       mockFetch.mockImplementationOnce(
@@ -77,7 +80,10 @@ describe('HumioDatasource', () => {
       result.add({ timestamp: event['@timestamp'], message: event['message'], id: event['@id'] });
 
       scheduler.run(({ expectObservable }) => {
-        expectObservable(ds.query(options)).toBe('1000ms (a|)', { a: { data: [result] } });
+        expectObservable(ds.query(options)).toBe('500ms a 499ms (b|)', {
+          a: { data: [], key: 'A' },
+          b: { data: [result], key: 'A' },
+        });
       });
     });
   });

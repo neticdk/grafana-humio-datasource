@@ -1,6 +1,6 @@
 import defaults from 'lodash/defaults';
-import { forkJoin, interval, Observable } from 'rxjs';
-import { exhaustMap, last, map, skipWhile, switchMap, take } from 'rxjs/operators';
+import { interval, merge, Observable } from 'rxjs';
+import { exhaustMap, map, switchMap, takeWhile } from 'rxjs/operators';
 import { BackendSrvRequest, FetchResponse, getBackendSrv, getTemplateSrv } from '@grafana/runtime';
 import { DataQueryRequest, DataQueryResponse, DataSourceInstanceSettings, DataSourceApi } from '@grafana/data';
 
@@ -57,8 +57,7 @@ export class HumioDataSource extends DataSourceApi<HumioQuery, HumioDataSourceOp
           }
           return response.data;
         }),
-        skipWhile((response) => !response.done),
-        take(1),
+        takeWhile((response) => !response.done, true),
         map(
           (response) =>
             new HumioQueryResult(
@@ -67,8 +66,7 @@ export class HumioDataSource extends DataSourceApi<HumioQuery, HumioDataSourceOp
               query.refId,
               this.instanceSettings.jsonData.derivedFields ?? []
             )
-        ),
-        last()
+        )
       );
   }
 
@@ -90,16 +88,15 @@ export class HumioDataSource extends DataSourceApi<HumioQuery, HumioDataSourceOp
 
         return this.search(query).pipe(
           map((result) => {
-            return result.toDataFrames();
+            return {
+              data: result.toDataFrames(),
+              key: query.refId,
+            } as DataQueryResponse;
           })
         );
       });
 
-    return forkJoin(queries).pipe(
-      map((results) => {
-        return { data: results.flat() };
-      })
-    );
+    return merge(...queries);
   }
 
   modifyQuery(query: HumioQuery, action: any): HumioQuery {
