@@ -49,3 +49,19 @@ export type DerivedFieldConfig = {
   url?: string;
   datasourceUid?: string;
 };
+
+/**
+ * Response when creating a new query job in Humio
+ */
+export interface HumioQueryJobData {
+  id: string;
+  queryOnView: string;
+}
+
+export interface HumioQueryResponse {
+  cancelled: boolean;
+  done: boolean;
+  events: any[];
+  metaData: any;
+  queryEventDistribution?: any;
+}

@@ -42,17 +42,21 @@ describe('HumioDatasource', () => {
       });
 
       const event = { '@timestamp': 1620646839343, message: 'Some message', '@id': 'unique' };
-      mockFetch.mockImplementation(() =>
-        of({
-          data: [event],
-          status: 200,
-          url: 'http://localhost:3000/api/tsdb/query',
-          config: { url: 'http://localhost:3000/api/tsdb/query' },
-          type: 'basic',
-          statusText: 'Ok',
-          redirected: false,
-          headers: {} as unknown as Headers,
-          ok: true,
+      mockFetch.mockImplementationOnce(
+        fetchResponse({
+          id: 'xxx',
+        })
+      );
+      mockFetch.mockImplementationOnce(
+        fetchResponse({
+          done: false,
+          events: [],
+        })
+      );
+      mockFetch.mockImplementationOnce(
+        fetchResponse({
+          done: true,
+          events: [event],
         })
       );
 
@@ -70,11 +74,27 @@ describe('HumioDatasource', () => {
       result.add({ timestamp: event['@timestamp'], message: event['message'], id: event['@id'] });
 
       scheduler.run(({ expectObservable }) => {
-        expectObservable(ds.query(options)).toBe('(a|)', { a: { data: [result] } });
+        expectObservable(ds.query(options)).toBe('1000ms (a|)', { a: { data: [result] } });
       });
     });
   });
 });
+
+function fetchResponse(data: any): (...args: any) => any {
+  return () => {
+    return of({
+      data: data,
+      status: 200,
+      url: 'http://localhost:3000/api/tsdb/query',
+      config: { url: 'http://localhost:3000/api/tsdb/query' },
+      type: 'basic',
+      statusText: 'Ok',
+      redirected: false,
+      headers: {} as unknown as Headers,
+      ok: true,
+    });
+  };
+}
 
 function getQueryOptions<TQuery extends DataQuery>(
   options: Partial<DataQueryRequest<TQuery>>

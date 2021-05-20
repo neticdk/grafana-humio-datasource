@@ -1,10 +1,17 @@
 import defaults from 'lodash/defaults';
-import { forkJoin, Observable } from 'rxjs';
-import { map } from 'rxjs/operators';
+import { forkJoin, interval, Observable } from 'rxjs';
+import { exhaustMap, last, map, skipWhile, switchMap, take } from 'rxjs/operators';
 import { BackendSrvRequest, FetchResponse, getBackendSrv, getTemplateSrv } from '@grafana/runtime';
 import { DataQueryRequest, DataQueryResponse, DataSourceInstanceSettings, DataSourceApi } from '@grafana/data';
 
-import { HumioQuery, HumioDataSourceOptions, HumioSearchResult, defaultQuery } from './types';
+import {
+  HumioQuery,
+  HumioDataSourceOptions,
+  HumioSearchResult,
+  defaultQuery,
+  HumioQueryJobData,
+  HumioQueryResponse,
+} from './types';
 import { HumioQueryResult } from 'query_result';
 
 export class HumioDataSource extends DataSourceApi<HumioQuery, HumioDataSourceOptions> {
@@ -12,9 +19,9 @@ export class HumioDataSource extends DataSourceApi<HumioQuery, HumioDataSourceOp
     super(instanceSettings);
   }
 
-  private search(query: HumioQuery): Observable<HumioSearchResult> {
-    const options: BackendSrvRequest = {
-      url: `${this.instanceSettings.url}/api/v1/repositories/${this.instanceSettings.jsonData.repository}/query`,
+  private queryJobCreate(query: HumioQuery): BackendSrvRequest {
+    return {
+      url: `${this.instanceSettings.url}/api/v1/repositories/${this.instanceSettings.jsonData.repository}/queryjobs`,
       method: 'POST',
       data: {
         queryString: query.queryString,
@@ -26,12 +33,37 @@ export class HumioDataSource extends DataSourceApi<HumioQuery, HumioDataSourceOp
         Accept: 'application/json',
       },
     };
+  }
+
+  private queryJobPoll(id: string): BackendSrvRequest {
+    return {
+      url: `${this.instanceSettings.url}/api/v1/repositories/${this.instanceSettings.jsonData.repository}/queryjobs/${id}`,
+      method: 'GET',
+      headers: {
+        Accept: 'application/json',
+      },
+    };
+  }
+
+  private search(query: HumioQuery): Observable<HumioSearchResult> {
     return getBackendSrv()
-      .fetch<any[]>(options)
+      .fetch<HumioQueryJobData>(this.queryJobCreate(query))
       .pipe(
-        map((result) => {
-          return new HumioQueryResult(result.data, query.refId, this.instanceSettings.jsonData.derivedFields ?? []);
-        })
+        switchMap((response) => interval(500).pipe(map((_) => response.data.id))),
+        exhaustMap((id) => getBackendSrv().fetch<HumioQueryResponse>(this.queryJobPoll(id))),
+        map((response) => {
+          if (response.data.cancelled) {
+            throw new Error('Humio query job has been cancelled');
+          }
+          return response.data;
+        }),
+        skipWhile((response) => !response.done),
+        take(1),
+        map(
+          (response) =>
+            new HumioQueryResult(response.events, query.refId, this.instanceSettings.jsonData.derivedFields ?? [])
+        ),
+        last()
       );
   }
 
