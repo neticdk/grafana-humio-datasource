@@ -62,6 +62,23 @@ export interface HumioQueryResponse {
   cancelled: boolean;
   done: boolean;
   events: any[];
-  metaData: any;
+  metaData: {
+    costs: any;
+    eventCount: number;
+    extraData: any;
+    fieldOrder?: string[];
+    filterQuery: any;
+    isAggregate: boolean;
+    pollAfter: number;
+    processedBytes: number;
+    processedEvents: number;
+    queryStart: number;
+    queryEnd: number;
+    resultBufferSize: number;
+    timeMillis: number;
+    totalWork: number;
+    warnings: any[];
+    workDone: number;
+  };
   queryEventDistribution?: any;
 }

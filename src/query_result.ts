@@ -21,14 +21,19 @@ export class HumioQueryResult implements HumioSearchResult {
   ];
   private messageField = 'message';
 
-  constructor(public events: any[], private refId: string, private derivedFields: DerivedFieldConfig[]) {}
+  constructor(
+    public events: any[],
+    private aggregate: boolean,
+    private refId: string,
+    private derivedFields: DerivedFieldConfig[]
+  ) {}
 
   toDataFrames(): DataFrame[] {
     if (this.events.length === 0) {
       return [];
     }
 
-    if (this.events.some((ev) => TS_FIELD in ev)) {
+    if (!this.aggregate) {
       return this.toLogFrames();
     } else {
       return this.toMetricFrame();

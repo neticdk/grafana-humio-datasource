@@ -57,6 +57,9 @@ describe('HumioDatasource', () => {
         fetchResponse({
           done: true,
           events: [event],
+          metaData: {
+            isAggregate: false,
+          },
         })
       );
 

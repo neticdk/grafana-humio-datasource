@@ -61,7 +61,12 @@ export class HumioDataSource extends DataSourceApi<HumioQuery, HumioDataSourceOp
         take(1),
         map(
           (response) =>
-            new HumioQueryResult(response.events, query.refId, this.instanceSettings.jsonData.derivedFields ?? [])
+            new HumioQueryResult(
+              response.events,
+              response.metaData.isAggregate,
+              query.refId,
+              this.instanceSettings.jsonData.derivedFields ?? []
+            )
         ),
         last()
       );
