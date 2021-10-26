@@ -22,6 +22,7 @@ export const defaultQuery: Partial<HumioQuery> = {
 export interface HumioDataSourceOptions extends DataSourceJsonData {
   repository: string;
   derivedFields?: DerivedFieldConfig[];
+  oauthPassThru: boolean;
 }
 
 /**

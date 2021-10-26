@@ -2,7 +2,7 @@
   "$schema": "https://raw.githubusercontent.com/grafana/grafana/master/docs/sources/developers/plugins/plugin.schema.json",
   "type": "datasource",
   "name": "Netic Humio",
-  "id": "netic-humio-datasource",
+  "id": "neticdk-humio-datasource",
   "category": "logging",
 
   "logs": true,
@@ -21,8 +21,8 @@
       "large": "img/logo.svg"
     },
     "links": [
-      { "name": "Website", "url": "https://github.com/grafana/grafana-starter-datasource" },
-      { "name": "License", "url": "https://github.com/grafana/grafana-starter-datasource/blob/master/LICENSE" }
+      { "name": "Website", "url": "https://github.com/neticdk/grafana-humio-datasource" },
+      { "name": "License", "url": "https://github.com/neticdk/blob/main/LICENSE" }
     ],
     "screenshots": [],
     "version": "%VERSION%",
@@ -31,13 +31,7 @@
 
   "routes": [
     {
-      "path": "api",
-      "headers": [
-        {
-          "name": "Authorization",
-          "content": "Bearer {{ .SecureJsonData.apiToken }}"
-        }
-      ]
+      "path": "api"
     }
   ],
 
