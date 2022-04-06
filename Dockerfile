@@ -1,4 +1,4 @@
-FROM grafana/grafana:8.2.1
+FROM grafana/grafana:8.4.5
 
 COPY dist /var/lib/netic/plugins/netic-humio-datasource
 
