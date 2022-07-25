@@ -22,7 +22,7 @@
     },
     "links": [
       { "name": "Website", "url": "https://github.com/neticdk/grafana-humio-datasource" },
-      { "name": "License", "url": "https://github.com/neticdk/blob/main/LICENSE" }
+      { "name": "License", "url": "https://github.com/neticdk/grafana-humio-datasource/blob/main/LICENSE" }
     ],
     "screenshots": [],
     "version": "%VERSION%",
