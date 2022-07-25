@@ -1,6 +1,6 @@
 {
   "name": "grafana-humoi-datasource",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Grafana Data Source for Humio",
   "scripts": {
     "build": "grafana-toolkit plugin:build",

@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.2](https://github.com/neticdk/grafana-humio-datasource/compare/v0.1.1...v0.1.2) (2022-07-25)
+
+
+### Bug Fixes
+
+* Updating URL to license file ([fab7468](https://github.com/neticdk/grafana-humio-datasource/commit/fab7468afd0cb4f24f8b6cb0cf9feb76282946be))
+
 ## [0.1.1](https://github.com/neticdk/grafana-humio-datasource/compare/v0.1.0...v0.1.1) (2022-07-25)
 
 
