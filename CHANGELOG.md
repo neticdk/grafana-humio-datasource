@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.1](https://github.com/neticdk/grafana-humio-datasource/compare/v0.1.0...v0.1.1) (2022-07-25)
+
+
+### Miscellaneous Chores
+
+* release 0.1.1 ([5e7229a](https://github.com/neticdk/grafana-humio-datasource/commit/5e7229a31018b382be067f4e125a553a4120f8e1))
+
 ## 0.1.0 (2022-07-25)
 
 
