@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.0](https://github.com/neticdk/grafana-humio-datasource/compare/v0.1.2...v0.2.0) (2022-07-26)
+
+
+### Features
+
+* :memo: Adding documentation ([#12](https://github.com/neticdk/grafana-humio-datasource/issues/12)) ([372d72a](https://github.com/neticdk/grafana-humio-datasource/commit/372d72a3d77577d349d69593144bff7085b7e6de))
+
 ## [0.1.2](https://github.com/neticdk/grafana-humio-datasource/compare/v0.1.1...v0.1.2) (2022-07-25)
 
 
