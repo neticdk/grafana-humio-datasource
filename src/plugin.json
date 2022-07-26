@@ -24,7 +24,12 @@
       { "name": "Website", "url": "https://github.com/neticdk/grafana-humio-datasource" },
       { "name": "License", "url": "https://github.com/neticdk/grafana-humio-datasource/blob/main/LICENSE" }
     ],
-    "screenshots": [],
+    "screenshots": [
+      {
+        "name": "Query editor",
+        "path": "img/log-query.png"
+      }
+    ],
     "version": "%VERSION%",
     "updated": "%TODAY%"
   },
