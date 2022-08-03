@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.1](https://github.com/neticdk/grafana-humio-datasource/compare/v0.2.0...v0.2.1) (2022-08-03)
+
+
+### Bug Fixes
+
+* Use absolute link to make sure it is portable ([8e91d6a](https://github.com/neticdk/grafana-humio-datasource/commit/8e91d6a2b1273eaad2f9705daba7fa8b30e6bc76))
+
 ## [0.2.0](https://github.com/neticdk/grafana-humio-datasource/compare/v0.1.2...v0.2.0) (2022-07-26)
 
 
