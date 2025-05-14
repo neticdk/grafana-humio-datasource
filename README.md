@@ -1,3 +1,5 @@
+*Note:* As Grafana did not wish to list this pluing and since we are not using it anymore it has been archived.
+
 # Grafana Humio Datasource
 
 The Humio datasource allow using the Grafana explorer to query Humio logs using the Humio Query API.
